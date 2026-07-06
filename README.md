@@ -28,9 +28,33 @@ CryptKey is built with a defense-in-depth approach to protect against brute-forc
 *   **Frontend:** HTML5, CSS3, Vanilla JavaScript
 *   **APIs:** Have I Been Pwned (k-Anonymity model)
 
+## Prerequisites
+Ensure you have Python 3.8+ and Git installed on your machine.
+
+
 ## 🚀 Installation & Usage
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/yourusername/CryptKey.git](https://github.com/yourusername/CryptKey.git)
+   git clone https://github.com/Abhijeet-Mishra22/CryptKey.git
    cd CryptKey
+
+2. **Install dependencies:**
+   ```bash
+   pip install Flask
+
+3. **Run the cryptographic server:**
+   ```bash
+   app.py
+
+4. **Access the application:**
+   Open your preferred web browser and navigate to the local development server:
+    ```bash
+    http://localhost:5000
+
+   
+
+
+   
+
+   
