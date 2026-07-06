@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptKey | Enterprise Password Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #020617;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --weak: #ef4444;
+            --fair: #f59e0b;
+            --strong: #3b82f6;
+            --vstrong: #10b981;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1e1b4b 0%, #020617 60%);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1.1fr 1.3fr;
+            gap: 30px;
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.02);
+        }
+
+        @media (max-width: 850px) {
+            .dashboard { grid-template-columns: 1fr; padding: 25px; }
+        }
+
+        .header h1 {
+            font-size: 32px; margin: 0 0 5px 0;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .header p { color: var(--text-muted); margin: 0; font-size: 14px; }
+
+        .form-group { position: relative; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        
+        .input-icon-wrapper { position: relative; }
+        .input-icon-wrapper i, .input-icon-wrapper img {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); width: 18px; height: 18px; text-align: center;
+        }
+        
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%; padding: 14px 14px 14px 45px; box-sizing: border-box;
+            border-radius: 12px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.4); color: white; font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+
+        .eye-toggle {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; color: var(--text-muted); transition: 0.2s;
+        }
+        .eye-toggle:hover { color: var(--primary); }
+
+        .settings-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border: 1px solid var(--border);
+        }
+
+        .range-container { grid-column: span 2; margin-bottom: 10px; }
+        .range-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; color: #cbd5e1;}
+        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #cbd5e1; }
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .3s; border-radius: 34px; border: 1px solid var(--border); }
+        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: rgba(16, 185, 129, 0.2); border-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(16px); background-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+        .generate-btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), #047857);
+            color: #fff; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 15px;
+            text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; margin-top: 15px;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        }
+        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(16, 185, 129, 0.3); }
+        .generate-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .right-panel { display: flex; flex-direction: column; gap: 20px; }
+        
+        .result-box {
+            background: rgba(0,0,0,0.3); border-radius: 16px; padding: 25px;
+            border: 1px solid var(--border); position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .output-wrapper { position: relative; margin-bottom: 15px; }
+        .password-display {
+            width: 100%; background: #020617; padding: 18px 45px 18px 20px; border-radius: 10px;
+            font-family: 'Courier New', monospace; font-size: 20px; color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.3); box-sizing: border-box;
+            letter-spacing: 2px;
+        }
+
+        .copy-btn {
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.03); color: var(--text-main);
+            border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: 0.2s; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .copy-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .analyzer-card {
+            background: rgba(255,255,255,0.02); border-radius: 16px; padding: 20px;
+            border: 1px solid var(--border);
+        }
+        .strength-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .strength-label { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .strength-bar-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+        .strength-bar-fill { height: 100%; width: 0%; transition: width 0.5s ease, background 0.5s ease; }
+
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .metric { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
+        .metric-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+        .metric-val { font-size: 14px; font-weight: bold; }
+
+        .pwned-status {
+            display: flex; align-items: center; gap: 10px; padding: 15px;
+            border-radius: 12px; font-size: 14px; font-weight: 600;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            margin-top: 20px; transition: 0.3s;
+        }
+        .pwned-status.safe { border-color: rgba(16, 185, 129, 0.5); color: var(--primary); background: rgba(16, 185, 129, 0.05); }
+        .pwned-status.breached { border-color: rgba(239, 68, 68, 0.5); color: var(--weak); background: rgba(239, 68, 68, 0.05); }
+        
+        .stats-dashboard {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;
+            margin-top: 10px;
+        }
+        .stat-card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+            padding: 20px; display: flex; flex-direction: column; gap: 5px;
+            backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
+        .stat-icon { font-size: 20px; color: var(--primary); margin-bottom: 5px; }
+        .stat-val { font-size: 28px; font-weight: 800; color: #fff; }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        .toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+        .toast {
+            background: rgba(15, 23, 42, 0.95); border-left: 4px solid var(--primary);
+            color: #fff; padding: 15px 20px; border-radius: 8px; font-size: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateX(120%);
+            animation: slideIn 0.3s forwards, fadeOut 0.3s forwards 4s;
+        }
+        .toast.error { border-color: var(--weak); }
+        @keyframes slideIn { to { transform: translateX(0); } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        .loader { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="dashboard">
+            <!-- LEFT PANEL: GENERATOR FORM -->
+            <div class="left-panel">
+                <div class="header">
+                    <h1><i class="fa-solid fa-shield-halved"></i> CryptKey</h1>
+                    <p>Advanced Deterministic Password Synthesis</p>
+                </div>
+
+                <form id="generatorForm" style="margin-top: 25px;">
+                    <div class="form-group">
+                        <label>Target Domain / Service</label>
+                        <div class="input-icon-wrapper">
+                            <img id="domainIcon" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%2394a3b8' d='M352 256c0 22.2-1.2 43.6-3.3 64H163.3c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.4c2.2 20.4 3.3 41.8 3.3 64zm28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64zm112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6c78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c10-63.9 29.8-117.4 55.3-151.6c-25.5 34.2-45.3 87.7-55.3 151.6zM135.3 256c0 22.2 1.1 43.4 3.2 64H15.3C10 299.5 7.2 278.1 7.2 256s2.8-43.5 8.1-64h123.1c-2.1 20.6-3.2 42-3.2 64zm-16.5 96H18.6c29.9 74.1 93.6 130.9 171.9 151.6c-25.5-34.2-45.3-87.7-55.3-151.6z'/></svg>" alt="Icon">
+                            <input type="text" id="targetSite" required autocomplete="off" placeholder="e.g., github.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Master Password</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-key"></i>
+                            <input type="password" id="masterPassword" required autocomplete="off" placeholder="Your memorable phrase">
+                            <i class="fa-solid fa-eye eye-toggle" id="toggleMaster" title="Toggle Visibility"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Key Version (Rotation)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-code-branch"></i>
+                            <input type="number" id="keyVersion" value="1" min="1" max="999" required title="Increment to rotate password without changing Master Key">
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="range-container">
+                            <div class="range-header">
+                                <span>Password Length</span>
+                                <span id="lengthVal" style="color:var(--primary); font-weight:bold;">16</span>
+                            </div>
+                            <input type="range" id="lengthSlider" min="8" max="64" value="16">
+                        </div>
+                        
+                        <div class="toggle-row">
+                            <span>Uppercase (A-Z)</span>
+                            <label class="switch"><input type="checkbox" id="chkUpper" checked><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span>Lowercase (a-z)</span>
+                            <label class="switch"><input type="checkbox" id="chkLower" checked><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span>Numbers (0-9)</span>
+                            <label class="switch"><input type="checkbox" id="chkNums" checked><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span>Symbols (!@#$)</span>
+                            <label class="switch"><input type="checkbox" id="chkSyms" checked><span class="slider"></span></label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="generateBtn" class="generate-btn">
+                        <span id="btnText">Synthesize Key</span>
+                        <div class="loader" id="btnLoader"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- RIGHT PANEL: RESULT & ANALYSIS -->
+            <div class="right-panel">
+                
+                <div class="result-box">
+                    <label style="color:var(--primary)">Generated Key</label>
+                    <div class="output-wrapper">
+                        <input type="password" id="passwordDisplay" class="password-display" value="••••••••••••••••" readonly>
+                        <i class="fa-solid fa-eye eye-toggle" id="toggleOutput" style="color:rgba(255,255,255,0.5)"></i>
+                    </div>
+                    <button id="copyBtn" class="copy-btn"><i class="fa-regular fa-copy"></i> Copy to Clipboard</button>
+                </div>
+
+                <div class="analyzer-card">
+                    <div class="strength-header">
+                        <span class="strength-label" id="strengthLabel" style="color: var(--text-muted);">Awaiting Key...</span>
+                        <i id="strengthIcon" class="fa-solid fa-shield" style="font-size: 24px; color: var(--text-muted);"></i>
+                    </div>
+                    
+                    <div class="strength-bar-bg">
+                        <div class="strength-bar-fill" id="strengthBar"></div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <div class="metric-title">Entropy</div>
+                            <div class="metric-val" id="entropyVal">0 bits</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-title">Cracking Time</div>
+                            <div class="metric-val" id="crackVal">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="hibpStatus" class="pwned-status">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Network status pending...</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECURITY DASHBOARD -->
+        <div>
+            <h2 style="font-size: 18px; margin-bottom: 15px; color: var(--text-muted);"><i class="fa-solid fa-chart-line"></i> Local Vault Analytics</h2>
+            <div class="stats-dashboard">
+                <div class="stat-card">
+                    <i class="fa-solid fa-vault stat-icon"></i>
+                    <div class="stat-val" id="dashTotal">0</div>
+                    <div class="stat-label">Sites Secured</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-ruler-horizontal stat-icon"></i>
+                    <div class="stat-val" id="dashAvgLen">0</div>
+                    <div class="stat-label">Avg Length</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-triangle-exclamation stat-icon" style="color: var(--fair);"></i>
+                    <div class="stat-val" id="dashRotate">0</div>
+                    <div class="stat-label">Require Rotation (>90d)</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-skull-crossbones stat-icon" style="color: var(--weak);"></i>
+                    <div class="stat-val" id="dashBreached">0</div>
+                    <div class="stat-label">Known Breaches</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // DOM Elements
+        const targetSite = document.getElementById('targetSite');
+        const domainIcon = document.getElementById('domainIcon');
+        const masterInput = document.getElementById('masterPassword');
+        const keyVersion = document.getElementById('keyVersion');
+        const lengthSlider = document.getElementById('lengthSlider');
+        const lengthVal = document.getElementById('lengthVal');
+        const passwordDisplay = document.getElementById('passwordDisplay');
+        
+        const chkUpper = document.getElementById('chkUpper');
+        const chkLower = document.getElementById('chkLower');
+        const chkNums = document.getElementById('chkNums');
+        const chkSyms = document.getElementById('chkSyms');
+
+        const toggleMaster = document.getElementById('toggleMaster');
+        const toggleOutput = document.getElementById('toggleOutput');
+        
+        const strengthLabel = document.getElementById('strengthLabel');
+        const strengthIcon = document.getElementById('strengthIcon');
+        const strengthBar = document.getElementById('strengthBar');
+        const entropyVal = document.getElementById('entropyVal');
+        const crackVal = document.getElementById('crackVal');
+        const hibpStatus = document.getElementById('hibpStatus');
+
+        const copyBtn = document.getElementById('copyBtn');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        let currentGeneratedPassword = "";
+        // --- UI Interactions ---
+        lengthSlider.addEventListener('input', (e) => { lengthVal.textContent = e.target.value; });
+
+        function setupToggle(iconEl, inputEl) {
+            iconEl.addEventListener('click', () => {
+                if (inputEl.type === 'password') {
+                    inputEl.type = 'text';
+                    iconEl.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    inputEl.type = 'password';
+                    iconEl.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            });
+        }
+        setupToggle(toggleMaster, masterInput);
+        setupToggle(toggleOutput, passwordDisplay);
+
+        // Website Recognition 
+        targetSite.addEventListener('input', (e) => {
+            let val = e.target.value.trim().toLowerCase();
+            val = val.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+            if(val.includes('.')) {
+                domainIcon.src = `https://www.google.com/s2/favicons?domain=${val}&sz=64`;
+            } else {
+                domainIcon.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%2394a3b8' d='M352 256c0 22.2-1.2 43.6-3.3 64H163.3c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.4c2.2 20.4 3.3 41.8 3.3 64zm28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64zm112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6c78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c10-63.9 29.8-117.4 55.3-151.6c-25.5 34.2-45.3 87.7-55.3 151.6zM135.3 256c0 22.2 1.1 43.4 3.2 64H15.3C10 299.5 7.2 278.1 7.2 256s2.8-43.5 8.1-64h123.1c-2.1 20.6-3.2 42-3.2 64zm-16.5 96H18.6c29.9 74.1 93.6 130.9 171.9 151.6c-25.5-34.2-45.3-87.7-55.3-151.6z'/></svg>";
+            }
+        });
+
+        function showToast(message, isError = false) {
+            const t = document.createElement('div');
+            t.className = `toast ${isError ? 'error' : ''}`;
+            t.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> ${message}`;
+            toastContainer.appendChild(t);
+            setTimeout(() => t.remove(), 4500);
+        }
+
+        // --- Core Logic ---
+        function analyzeStrength(pwdLength, u, l, n, s) {
+            let pool = 0;
+            if(u) pool += 26;
+            if(l) pool += 26;
+            if(n) pool += 10;
+            if(s) pool += 26; 
+
+            if(pool === 0) return;
+
+            const entropy = Math.round(pwdLength * Math.log2(pool));
+            entropyVal.textContent = `${entropy} bits`;
+
+            const combinations = Math.pow(pool, pwdLength);
+            const seconds = combinations / 100e9; 
+            
+            let timeStr = "";
+            if (seconds < 1) timeStr = "Instant";
+            else if (seconds < 3600) timeStr = `${Math.round(seconds/60)} minutes`;
+            else if (seconds < 86400) timeStr = `${Math.round(seconds/3600)} hours`;
+            else if (seconds < 31536000) timeStr = `${Math.round(seconds/86400)} days`;
+            else if (seconds < 3153600000) timeStr = `${Math.round(seconds/31536000)} years`;
+            else timeStr = "Centuries";
+            
+            crackVal.textContent = timeStr;
+
+            let color, label, percent;
+            if(entropy < 50) { label = "Weak"; color = "var(--weak)"; percent = 25; strengthIcon.className = "fa-solid fa-shield-virus"; }
+            else if(entropy < 70) { label = "Fair"; color = "var(--fair)"; percent = 50; strengthIcon.className = "fa-solid fa-shield"; }
+            else if(entropy < 90) { label = "Strong"; color = "var(--strong)"; percent = 75; strengthIcon.className = "fa-solid fa-shield-halved"; }
+            else { label = "Very Strong"; color = "var(--vstrong)"; percent = 100; strengthIcon.className = "fa-solid fa-shield-check"; }
+
+            strengthLabel.textContent = label;
+            strengthLabel.style.color = color;
+            strengthIcon.style.color = color;
+            strengthBar.style.width = `${percent}%`;
+            strengthBar.style.background = color;
+            
+            return { entropy, label };
+        }
+
+        async function checkHIBP(pwd) {
+            hibpStatus.className = "pwned-status";
+            hibpStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking known breaches...';
+            
+            try {
+                const msgBuffer = new TextEncoder().encode(pwd);
+                const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+                
+                const prefix = hashHex.slice(0, 5);
+                const suffix = hashHex.slice(5);
+
+                const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+                if(!res.ok) throw new Error("Network");
+                
+                const text = await res.text();
+                const breaches = text.split('\n');
+                let foundCount = 0;
+                
+                for(let line of breaches) {
+                    const [h, count] = line.split(':');
+                    if(h === suffix) {
+                        foundCount = parseInt(count.trim());
+                        break;
+                    }
+                }
+
+                if(foundCount > 0) {
+                    hibpStatus.className = "pwned-status breached";
+                    hibpStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> OVERCOMPROMISED: Found in ${foundCount.toLocaleString()} breaches!`;
+                    return true;
+                } else {
+                    hibpStatus.className = "pwned-status safe";
+                    hibpStatus.innerHTML = `<i class="fa-solid fa-check-double"></i> SECURE: Not found in any known database breaches.`;
+                    return false;
+                }
+            } catch(e) {
+                hibpStatus.innerHTML = `<i class="fa-solid fa-wifi"></i> Breach check unavailable (Network Error).`;
+                return false;
+            }
+        }
+
+        function updateVaultHistory(site, version, length, isBreached) {
+            let vault = JSON.parse(localStorage.getItem('cryptkey_vault') || '[]');
+            vault = vault.filter(v => !(v.site === site && v.version === version));
+            
+            vault.push({
+                site: site,
+                version: version,
+                length: length,
+                date: Date.now(),
+                breached: isBreached
+            });
+
+            localStorage.setItem('cryptkey_vault', JSON.stringify(vault));
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const vault = JSON.parse(localStorage.getItem('cryptkey_vault') || '[]');
+            document.getElementById('dashTotal').textContent = vault.length;
+            
+            if(vault.length > 0) {
+                const avgLen = vault.reduce((acc, curr) => acc + curr.length, 0) / vault.length;
+                document.getElementById('dashAvgLen').textContent = Math.round(avgLen);
+            }
+            
+            const breachedCount = vault.filter(v => v.breached).length;
+            document.getElementById('dashBreached').textContent = breachedCount;
+            
+            const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            const expiredCount = vault.filter(v => (now - v.date) > ninetyDaysMs).length;
+            document.getElementById('dashRotate').textContent = expiredCount;
+            
+            if(expiredCount > 0) {
+                document.getElementById('dashRotate').parentElement.style.borderColor = "var(--fair)";
+            }
+        }
+        renderDashboard();
+
+        function runHackerAnimation(finalText) {
+            return new Promise(resolve => {
+                const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+                let iterations = 0;
+                
+                const originalType = passwordDisplay.type;
+                passwordDisplay.type = 'text';
+                
+                const interval = setInterval(() => {
+                    passwordDisplay.value = finalText.split('').map((c, i) => {
+                        if (i < iterations) return finalText[i];
+                        return chars[Math.floor(Math.random() * chars.length)];
+                    }).join('');
+                    
+                    iterations += 1/2; 
+                    
+                    if (iterations >= finalText.length) {
+                        clearInterval(interval);
+                        passwordDisplay.value = finalText;
+                        passwordDisplay.type = originalType; 
+                        resolve();
+                    }
+                }, 30);
+            });
+        }
+
+        // --- Main Form Submission ---
+        document.getElementById('generatorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                targetSite: targetSite.value.trim().toLowerCase(),
+                masterPassword: masterInput.value,
+                version: parseInt(keyVersion.value),
+                length: parseInt(lengthSlider.value),
+                uppercase: chkUpper.checked,
+                lowercase: chkLower.checked,
+                numbers: chkNums.checked,
+                symbols: chkSyms.checked
+            };
+
+            if (!payload.uppercase && !payload.lowercase && !payload.numbers && !payload.symbols) {
+                showToast("You must select at least one character type.", true);
+                return;
+            }
+
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            const btn = document.getElementById('generateBtn');
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'block';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentGeneratedPassword = data.generatedPassword;
+                    analyzeStrength(payload.length, payload.uppercase, payload.lowercase, payload.numbers, payload.symbols);
+                    await runHackerAnimation(currentGeneratedPassword);
+                    const isBreached = await checkHIBP(currentGeneratedPassword);
+                    updateVaultHistory(payload.targetSite, payload.version, payload.length, isBreached);
+                    showToast("Cryptographic key successfully synthesized.");
+                } else {
+                    showToast(data.error, true);
+                }
+            } catch (err) {
+                showToast("Failed to connect to backend server.", true);
+            } finally {
+                btnText.style.display = 'block';
+                btnLoader.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+
+        // Copy Clipboard
+        copyBtn.addEventListener('click', () => {
+            if (currentGeneratedPassword && currentGeneratedPassword.length > 0) {
+                navigator.clipboard.writeText(currentGeneratedPassword).then(() => {
+                    const origHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied to Clipboard';
+                    copyBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+                    copyBtn.style.color = 'var(--primary)';
+                    copyBtn.style.borderColor = 'var(--primary)';
+                    showToast("Password copied securely.");
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = origHtml;
+                        copyBtn.style.background = 'rgba(255,255,255,0.03)';
+                        copyBtn.style.color = 'var(--text-main)';
+                        copyBtn.style.borderColor = 'var(--border)';
+                    }, 2000);
+                });
+            } else {
+                showToast("No password generated yet.", true);
+            }
+        });
+    </script>
+</body>
+</html>
